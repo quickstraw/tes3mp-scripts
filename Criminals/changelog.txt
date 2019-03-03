@@ -6,3 +6,4 @@ with the killer's Pid.
 -Fixed crashing due to the custom variable being nil by creating the custom variable right after character creation.
 -Changed the custom variable category from Skvysh to Criminals to remove confusion from which script the
 variable belongs.
+-Added check for custom variable before each update because the server would sometimes crash.
