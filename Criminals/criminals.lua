@@ -93,6 +93,11 @@ Methods.GetNewCriminalLevel = function(pid) -- get the criminal level based on c
 end
 
 Methods.UpdateBounty = function(pid) -- display global messages if needed when a criminal level changes
+		
+    if Players[pid].data.customVariables.Criminals == nil then
+        Players[pid].data.customVariables.Criminals = {}
+    end
+
     local message
     local playerName = tes3mp.GetName(pid) .. " (" .. pid .. ")"
     local criminal = criminals.GetNewCriminalLevel(pid)
