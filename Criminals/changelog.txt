@@ -1,0 +1,8 @@
+Changes from Skvysh's Criminals:
+-Added PlayerIDs after the names in bounty messages.
+-Added [Notice] to the global claimed bounty message.
+-Changed ProcessBountyReward to take 2 PlayerID inputs instead of a Pid and the name of the killer concatenated
+with the killer's Pid.
+-Fixed crashing due to the custom variable being nil by creating the custom variable right after character creation.
+-Changed the custom variable category from Skvysh to Criminals to remove confusion from which script the
+variable belongs.
