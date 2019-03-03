@@ -6,6 +6,9 @@ I fixed the script to run correctly and hopefully without bugs.
 
 ### Installation
 
+##### For Simpler Installation:
+Use the script loader version of this script.
+
 ##### In serverCore.lua:
 Add ````criminals = require("criminals")```` to the top with the other requires.
 
