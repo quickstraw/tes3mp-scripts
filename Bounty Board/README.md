@@ -1,6 +1,8 @@
 ## Bounty Board
 Adds a bounty command which displays a sorted list of active players and their bounties.
 
+Use the "/bounties" commands to show the list.
+
 ![Imgur](https://i.imgur.com/QaEMkjF.png)
 
 ### Installation
