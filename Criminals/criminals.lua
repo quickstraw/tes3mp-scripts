@@ -113,7 +113,7 @@ end
 
 Criminals.ProcessBountyReward = function(eventStatus, pid) -- give rewards for claiming a bounty
 
-	if tes3mp.DoesPlayerHavePlayerKiller == true then
+	if tes3mp.DoesPlayerHavePlayerKiller(pid) == true then
 
 		local killerPid = tes3mp.GetPlayerKillerPid(pid)
 		
