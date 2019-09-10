@@ -1,5 +1,5 @@
 ------------------
--- Version: 1.1 --
+-- Version: 1.2 --
 ------------------
 
 -- Settings
@@ -9,8 +9,8 @@ displayGlobalBountyClaim = true -- whether or not to display a global message wh
 bountyItem = "gold_001" -- item used as bounty, in case you use a custom currency
 require("color")
 
-local Methods = {}
-Methods.OnAccountCreation = function(pid) -- Initialize new characters by giving them a custom variable.
+local Criminals = {}
+Criminals.OnAccountCreation = function(eventStatus, pid) -- Initialize new characters by giving them a custom variable.
 	if Players[pid].data.customVariables.Criminals == nil then
         Players[pid].data.customVariables.Criminals = {}
     end
@@ -30,7 +30,7 @@ Methods.OnAccountCreation = function(pid) -- Initialize new characters by giving
     end
 end
 
-Methods.OnLogin = function(pid) -- set the criminal level as a custom variable for players based on their bounty
+Criminals.OnLogin = function(eventStatus, pid) -- set the criminal level as a custom variable for players based on their bounty
     if Players[pid].data.customVariables.Criminals == nil then
         Players[pid].data.customVariables.Criminals = {}
     end
@@ -50,20 +50,7 @@ Methods.OnLogin = function(pid) -- set the criminal level as a custom variable f
     end
 end
 
-Methods.IsCriminal = function(pid) -- get criminal prefix for chat messages
-    local bounty = tes3mp.GetBounty(pid)
-    local prefix = ""
-    if bounty >= 5000 then
-        prefix = color.Red .. "[Fugitive] " .. color.Default
-    elseif bounty >= 1000 then
-        prefix = color.Salmon .. "[Criminal] " .. color.Default
-    elseif bounty >= 500 then
-        prefix = color.LightSalmon .. "[Thief] " .. color.Default
-    end
-    return prefix
-end
-
-Methods.GetNewCriminalLevel = function(pid) -- get the criminal level based on current bounty and previous level
+Criminals.GetNewCriminalLevel = function(pid) -- get the criminal level based on current bounty and previous level
     local bounty = tes3mp.GetBounty(pid)
     local previousCriminal = Players[pid].data.customVariables.Criminals.criminal
     local criminal
@@ -92,7 +79,7 @@ Methods.GetNewCriminalLevel = function(pid) -- get the criminal level based on c
     return criminal
 end
 
-Methods.UpdateBounty = function(pid) -- display global messages if needed when a criminal level changes
+Criminals.UpdateBounty = function(eventStatus, pid) -- display global messages if needed when a criminal level changes
 		
     if Players[pid].data.customVariables.Criminals == nil then
         Players[pid].data.customVariables.Criminals = {}
@@ -100,7 +87,7 @@ Methods.UpdateBounty = function(pid) -- display global messages if needed when a
 
     local message
     local playerName = tes3mp.GetName(pid) .. " (" .. pid .. ")"
-    local criminal = criminals.GetNewCriminalLevel(pid)
+    local criminal = Criminals.GetNewCriminalLevel(pid)
     if criminal > 0 then
         if displayGlobalWanted == true then
             message = color.Crimson .. "[Alert] " .. color.Brown .. playerName .. " " .. color.Default
@@ -124,7 +111,7 @@ Methods.UpdateBounty = function(pid) -- display global messages if needed when a
     end
 end
 
-Methods.ProcessBountyReward = function(pid, killerPid) -- give rewards for claiming a bounty
+Criminals.ProcessBountyReward = function(pid, killerPid) -- give rewards for claiming a bounty
     local playerName = tes3mp.GetName(pid) .. " (" .. pid .. ")"
 	local killer = tes3mp.GetName(killerPid) .. " (" .. killerPid .. ")"
     local lastPid = tes3mp.GetLastPlayerId()
@@ -179,11 +166,36 @@ Methods.ProcessBountyReward = function(pid, killerPid) -- give rewards for claim
                     Players[killerPid]:LoadInventory()
                     Players[killerPid]:LoadEquipment()
                     Players[killerPid]:Save()
-                    criminals.GetNewCriminalLevel(pid)
+                    Criminals.GetNewCriminalLevel(pid)
                 end
             end
         end
     end
 end
 
-return Methods
+Criminals.AddPrefix = function(eventStatus, pid, message) -- Add prefix to a criminal player's message.
+	if message:sub(1, 1) ~= '/' then
+		local prefix = Criminals.IsCriminal(pid)
+		tes3mp.SendMessage(pid, prefix, true)
+    end
+end
+
+Criminals.IsCriminal = function(pid) -- get criminal prefix for chat messages
+    local bounty = tes3mp.GetBounty(pid)
+    local prefix = ""
+    if bounty >= 5000 then
+        prefix = color.Red .. "[Fugitive] " .. color.Default
+    elseif bounty >= 1000 then
+        prefix = color.Salmon .. "[Criminal] " .. color.Default
+    elseif bounty >= 500 then
+        prefix = color.LightSalmon .. "[Thief] " .. color.Default
+    end
+    return prefix
+end
+
+customEventHooks.registerHandler("OnPlayerEndCharGen", Criminals.OnAccountCreation)
+customEventHooks.registerHandler("OnPlayerFinishLogin", Criminals.OnLogin)
+customEventHooks.registerHandler("OnPlayerBounty", Criminals.UpdateBounty)
+customEventHooks.registerValidator("OnPlayerSendMessage", Criminals.AddPrefix)
+
+return Criminals
