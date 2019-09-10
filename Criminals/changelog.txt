@@ -7,3 +7,7 @@ with the killer's Pid.
 -Changed the custom variable category from Skvysh to Criminals to remove confusion from which script the
 variable belongs.
 -Added check for custom variable before each update because the server would sometimes crash.
+
+1.2:
+-Added prefixes to messages from criminals.
+-Added support for customEventHandler for easier installation.
