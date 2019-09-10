@@ -111,66 +111,72 @@ Criminals.UpdateBounty = function(eventStatus, pid) -- display global messages i
     end
 end
 
-Criminals.ProcessBountyReward = function(pid, killerPid) -- give rewards for claiming a bounty
-    local playerName = tes3mp.GetName(pid) .. " (" .. pid .. ")"
-	local killer = tes3mp.GetName(killerPid) .. " (" .. killerPid .. ")"
-    local lastPid = tes3mp.GetLastPlayerId()
-    local currentBounty = tes3mp.GetBounty(pid)
-    local newBounty
-    local reward
-    local message
+Criminals.ProcessBountyReward = function(eventStatus, pid) -- give rewards for claiming a bounty
+
+	if tes3mp.DoesPlayerHavePlayerKiller == true then
+
+		local killerPid = tes3mp.GetPlayerKillerPid(pid)
+		
+		local playerName = tes3mp.GetName(pid) .. " (" .. pid .. ")"
+		local killer = tes3mp.GetName(killerPid) .. " (" .. killerPid .. ")"
+		local lastPid = tes3mp.GetLastPlayerId()
+		local currentBounty = tes3mp.GetBounty(pid)
+		local newBounty
+		local reward
+		local message
 	
-    if currentBounty >= 500 then -- don't want newbies losing gold over petty theft
-        if killerPid ~= -1 then -- if a killer was found
-            if bountyItem ~= "" then
-                if tableHelper.containsKeyValue(Players[pid].data.inventory, "refId", bountyItem, true) then
-                    itemIndex = tableHelper.getIndexByNestedKeyValue(Players[pid].data.inventory, "refId", bountyItem)
-                    itemCount = Players[pid].data.inventory[itemIndex].count -- find how much gold the player has
-                else
-                    itemCount = 0
-                end
-                if itemCount >= currentBounty then -- if a bounty can be fully cleared, do so
-                    newBounty = 0
-                    reward = currentBounty
-                else
-                    newBounty = currentBounty - itemCount -- otherwise, clear it only partially
-                    reward = itemCount
-                end
-                local structuredItem = { refId = bountyItem, count = reward, charge = -1 } -- give the reward to the killer
-                table.insert(Players[killerPid].data.inventory, structuredItem)
-                if itemCount ~= 0 then -- if the player actually has gold
-                    Players[pid].data.inventory[itemIndex].count = Players[pid].data.inventory[itemIndex].count - reward --remove the gold
-                    if Players[pid].data.inventory[itemIndex].count == 0 then
-                        Players[pid].data.inventory[itemIndex] = nil
-                    end
-                    if displayGlobalBountyClaim == true then -- display messages
-                        message = color.Green .. "[Notice] " .. color.Brown .. killer .. color.Default .. " has claimed a bounty of " .. tostring(reward) .. " by killing " .. color.Brown .. playerName .. color.Default .. ".\n"
-                        tes3mp.SendMessage(pid, message, true)
-                    else
-                        message = color.Brown .. "You" .. color.Default .. " have claimed a bounty of " .. tostring(reward) .. " by killing " .. color.Brown .. playerName .. color.Default .. ".\n"
-                        tes3mp.SendMessage(killerPid, message, false)
-                    end
-                    if newBounty == 0 then -- display additional message to let people know the player is no longer a criminal
-                        if displayGlobalClearedBounty == true then
-                            message = color.Green .. "[Notice] " .. color.Brown .. playerName .. " " .. color.Default
-                            message = message .. "no longer has a bounty on their head.\n"
-                            tes3mp.SendMessage(pid, message, true)
-                        end
-                    end
-                    Players[pid].data.fame.bounty = newBounty -- set new bounty
-                    tes3mp.SetBounty(pid, Players[pid].data.fame.bounty)
-                    tes3mp.SendBounty(pid)
-                    Players[pid]:LoadInventory() -- save inventories for both players
-                    Players[pid]:LoadEquipment()
-                    Players[pid]:Save()
-                    Players[killerPid]:LoadInventory()
-                    Players[killerPid]:LoadEquipment()
-                    Players[killerPid]:Save()
-                    Criminals.GetNewCriminalLevel(pid)
-                end
-            end
-        end
-    end
+		if currentBounty >= 500 then -- don't want newbies losing gold over petty theft
+			if killerPid ~= -1 then -- if a killer was found
+				if bountyItem ~= "" then
+					if tableHelper.containsKeyValue(Players[pid].data.inventory, "refId", bountyItem, true) then
+						itemIndex = tableHelper.getIndexByNestedKeyValue(Players[pid].data.inventory, "refId", bountyItem)
+						itemCount = Players[pid].data.inventory[itemIndex].count -- find how much gold the player has
+					else
+						itemCount = 0
+					end
+					if itemCount >= currentBounty then -- if a bounty can be fully cleared, do so
+						newBounty = 0
+						reward = currentBounty
+					else
+						newBounty = currentBounty - itemCount -- otherwise, clear it only partially
+						reward = itemCount
+					end
+					local structuredItem = { refId = bountyItem, count = reward, charge = -1 } -- give the reward to the killer
+					table.insert(Players[killerPid].data.inventory, structuredItem)
+					if itemCount ~= 0 then -- if the player actually has gold
+						Players[pid].data.inventory[itemIndex].count = Players[pid].data.inventory[itemIndex].count - reward --remove the gold
+						if Players[pid].data.inventory[itemIndex].count == 0 then
+							Players[pid].data.inventory[itemIndex] = nil
+						end
+						if displayGlobalBountyClaim == true then -- display messages
+							message = color.Green .. "[Notice] " .. color.Brown .. killer .. color.Default .. " has claimed a bounty of " .. tostring(reward) .. " by killing " .. color.Brown .. playerName .. color.Default .. ".\n"
+							tes3mp.SendMessage(pid, message, true)
+						else
+							message = color.Brown .. "You" .. color.Default .. " have claimed a bounty of " .. tostring(reward) .. " by killing " .. color.Brown .. playerName .. color.Default .. ".\n"
+							tes3mp.SendMessage(killerPid, message, false)
+						end
+						if newBounty == 0 then -- display additional message to let people know the player is no longer a criminal
+							if displayGlobalClearedBounty == true then
+								message = color.Green .. "[Notice] " .. color.Brown .. playerName .. " " .. color.Default
+								message = message .. "no longer has a bounty on their head.\n"
+								tes3mp.SendMessage(pid, message, true)
+							end
+						end
+						Players[pid].data.fame.bounty = newBounty -- set new bounty
+						tes3mp.SetBounty(pid, Players[pid].data.fame.bounty)
+						tes3mp.SendBounty(pid)
+						Players[pid]:LoadInventory() -- save inventories for both players
+						Players[pid]:LoadEquipment()
+						Players[pid]:Save()
+						Players[killerPid]:LoadInventory()
+						Players[killerPid]:LoadEquipment()
+						Players[killerPid]:Save()
+						Criminals.GetNewCriminalLevel(pid)
+					end
+				end
+			end
+		end
+	end
 end
 
 Criminals.AddPrefix = function(eventStatus, pid, message) -- Add prefix to a criminal player's message.
@@ -196,6 +202,7 @@ end
 customEventHooks.registerHandler("OnPlayerEndCharGen", Criminals.OnAccountCreation)
 customEventHooks.registerHandler("OnPlayerFinishLogin", Criminals.OnLogin)
 customEventHooks.registerHandler("OnPlayerBounty", Criminals.UpdateBounty)
+customEventHooks.registerHandler("OnPlayerDeath", Criminals.ProcessBountyReward)
 customEventHooks.registerValidator("OnPlayerSendMessage", Criminals.AddPrefix)
 
 return Criminals
