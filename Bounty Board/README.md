@@ -9,5 +9,8 @@ Click on a criminal's name and press OK to display a description of that player.
 
 ### Installation
 
+##### In the server folder:
+Copy this script into the scripts/custom/ folder.
+
 ##### In customScripts.lua:
-Add: ````require("bountyBoard")```` to the top of the file near the other require statements.
+Add: ````require("custom/bountyBoard")```` to the top of the file near the other require statements.
