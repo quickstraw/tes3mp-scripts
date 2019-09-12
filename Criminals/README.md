@@ -1,7 +1,7 @@
 ## Criminals
 
 ### Version: 1.2
-This is a lua script for tes3mp based on [Skvysh's Criminals](https://github.com/Skvysh/TES3MP-Scripts/tree/master/Criminals) script.
+This is a lua script for tes3mp based on [Skvysh's Criminals](https://github.com/Skvysh/TES3MP-Scripts/tree/master/Criminals) script. Unfortunately, it looks like that script has been taken down.
 I fixed the script to run correctly and hopefully without bugs. The script has been updated for easy installation.
 
 ### Features
