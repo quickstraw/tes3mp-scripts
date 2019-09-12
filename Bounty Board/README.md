@@ -5,6 +5,8 @@ Use the "/bounties" command to show the list.
 
 ![Imgur](https://i.imgur.com/QaEMkjF.png)
 
+Click on a criminal's name and press OK to display a description of that player.
+
 ### Installation
 
 ##### In serverCore.lua:
