@@ -18,4 +18,4 @@ I fixed the script to run correctly and hopefully without bugs. The script has b
 Copy this script into the scripts/custom/ folder.
 
 ##### In customScripts.lua:
-Add ````criminals = require("criminals")```` to the top with the other requires.
+Add ````criminals = require("custom/criminals")```` to the top with the other requires.
