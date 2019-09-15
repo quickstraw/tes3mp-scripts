@@ -126,7 +126,7 @@ Criminals.ProcessBountyReward = function(eventStatus, pid) -- give rewards for c
 		local message
 	
 		if currentBounty >= 500 then -- don't want newbies losing gold over petty theft
-			if killerPid ~= -1 then -- if a killer was found
+			if killerPid ~= -1 and killerPid ~= pid then -- if a killer was found and is not suicide
 				if bountyItem ~= "" then
 					if tableHelper.containsKeyValue(Players[pid].data.inventory, "refId", bountyItem, true) then
 						itemIndex = tableHelper.getIndexByNestedKeyValue(Players[pid].data.inventory, "refId", bountyItem)
