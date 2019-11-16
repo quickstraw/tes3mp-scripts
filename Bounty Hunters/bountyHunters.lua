@@ -1,5 +1,5 @@
 ------------------
--- Version: 0.9 --
+-- Version: 1.0 --
 ------------------
 
 -- Script: Bounty Hunters
@@ -9,16 +9,15 @@
 --- Bounty hunters spawn behind a player with a bounty every so often.		---
 --- If a bounty hunter kills a player with a bounty, that player loses gold	---
 --- equal to their bounty, and that player's bounty is lowered by the		---
---- amount of gold lost.													---
-
---- Todo ---
---
---	Remove the bounty hunter after it's cell is unloaded.
---
---- Todo ---
+--- amount of gold lost Bounty hunters despawn on cell unload when no		---
+--- more players are in the cell.											---
 
 BountyTimers = {}
 BountyPause = {}
+UniqueIndexes = {}
+RefIds = {}
+TIMER_MIN = 600000
+TIMER_MAX = 900000
 
 --	Classes with a focus in destruction are commented out.
 --	Magic causes player deaths to look like suicides.
@@ -62,17 +61,28 @@ TimedNPC = function(pid)
 		math.random(); math.random(); math.random()
 	
 		-- Spawn Bounty Hunters
+		local spawnedMulti = false
+		
 		local uniqueIndex = Methods.GenerateNPC(pid)
+		
 		local uniqueIndex2
 		
 		if bounty > 2000 then
-			local rand = math.random(1, 100)
+			local rand = math.random(1, 10)
 			if (bounty / 1000) > rand then
 				uniqueIndex2 = Methods.GenerateNPC(pid)
+				spawnedMulti = true
 			end
 		end
 		
-		tes3mp.RestartTimer(BountyTimers[pid], math.random(600000, 900000))
+		-- Send the spawned bounty hunters message
+		if spawnedMulti then
+			tes3mp.MessageBox(pid, -1, "Some bounty hunters have come to collect the price on your head!")
+		else
+			tes3mp.MessageBox(pid, -1, "A bounty hunter has come to collect the price on your head!")
+		end
+		
+		tes3mp.RestartTimer(BountyTimers[pid], math.random(TIMER_MIN, TIMER_MAX))
 	elseif not outside and decentBounty then
 		if BountyPause[pid] == nil then -- If a pause timer does not exist...
 			BountyPause[pid] = tes3mp.CreateTimerEx("RestartBountyTimer", 5000, "i", pid)
@@ -541,16 +551,12 @@ Methods.GenerateNPC = function(pid)
 	-- Create Record
 	local id = Methods.CreateRecord(pid, npcTable)
 	
-	Players[pid]:Message("Generated NPC!\n")
-	
 	local uniqueIndex = Methods.SpawnObjectBehindPlayer(pid, id)
+	
+	table.insert(UniqueIndexes, uniqueIndex)
+	table.insert(RefIds, id)
 
 	return uniqueIndex
-end
-
-Methods.GenerateFromCommand = function(pid, cmd)
-	Methods.GenerateNPC(pid)
-	tes3mp.MessageBox(pid, -1, "A bounty hunter has come to collect the price on your head...")
 end
 
 Methods.CreateTimer = function(eventStatus, pid)
@@ -563,7 +569,7 @@ Methods.CreateTimer = function(eventStatus, pid)
 	
 	if decentBounty then
 		if BountyTimers[pid] == nil then
-			BountyTimers[pid] = tes3mp.CreateTimerEx("TimedNPC", math.random(600000, 900000), "i", pid)
+			BountyTimers[pid] = tes3mp.CreateTimerEx("TimedNPC", math.random(TIMER_MIN, TIMER_MAX), "i", pid)
 			tes3mp.StartTimer(BountyTimers[pid])
 		end
 	else
@@ -574,18 +580,6 @@ end
 Methods.ClearTimers = function(pid)
 	BountyTimers[pid] = nil
 	BountyPause[pid] = nil
-end
-
-Methods.SetBounty = function(pid, cmd)
-	if tonumber(cmd[2]) ~= nil then
-		local newBounty = tonumber(cmd[2])
-		Players[pid].data.fame.bounty = newBounty
-		tes3mp.SetBounty(pid, newBounty)
-		tes3mp.SendBounty(pid)
-		Players[pid]:Save()
-		Players[pid]:Message("Set bounty to " .. newBounty .. ".\n")
-		eventHandler.OnPlayerBounty(pid)
-	end
 end
 
 Methods.SpawnObjectBehindPlayer = function(pid, id)
@@ -653,17 +647,32 @@ Methods.BountyHunterKill = function(eventStatus, pid)
 				Players[pid]:LoadInventory() -- save inventories for both players
 				Players[pid]:LoadEquipment()
 				Players[pid]:Save()
-				eventHandler.OnPlayerBounty(pid) -- Fire OnPlayerBounty to signal that the player's bounty has changed.
+			eventHandler.OnPlayerBounty(pid) -- Fire OnPlayerBounty to signal that the player's bounty has changed.
 				tes3mp.MessageBox(pid, -1, reward .. " gold was taken by the bounty hunter.")
 			end				
 		end
 	end
 end
 
-customCommandHooks.registerCommand("testGen", Methods.GenerateFromCommand)
-customCommandHooks.registerCommand("setbounty", Methods.SetBounty)
+Methods.CleanupHunters = function(eventStatus, pid, cellDesc)
+	local currCell = LoadedCells[cellDesc]
+	local visitors = currCell.visitors
+
+        if tableHelper.getCount(visitors) <= 1 then
+            for i = 1, #UniqueIndexes + 1 do
+				local currIndex = UniqueIndexes[i]
+				local currId = RefIds[i]
+				if currCell:ContainsObject(currIndex) then
+					currCell:DeleteObjectData(currIndex)
+					currCell:RemoveLinkToRecord(enumerations.recordType["NPC"], currId, currIndex)
+				end
+			end
+        end
+end
+
 customEventHooks.registerHandler("OnPlayerFinishLogin", Methods.CreateTimer)
 customEventHooks.registerHandler("OnPlayerBounty", Methods.CreateTimer)
 customEventHooks.registerHandler("OnPlayerDeath", Methods.BountyHunterKill)
+customEventHooks.registerValidator("OnCellUnload", Methods.CleanupHunters)
 
 return Methods
