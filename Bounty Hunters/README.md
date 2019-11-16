@@ -1,8 +1,8 @@
 ## Bounty Hunters
 
-### Version: 0.9
+### Version: 1.0
 This is a lua script for tes3mp that spawns bounty hunters to attack those with decently high bounties.
-I fixed the script to run correctly and hopefully without bugs. The script has been updated for easy installation.
+Bounty hunters despawn when in a cell with no players.
 
 ### Features
 
