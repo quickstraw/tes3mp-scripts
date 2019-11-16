@@ -18,4 +18,4 @@ Bounty hunters despawn when in a cell with no players.
 Copy this script into the scripts/custom/ folder.
 
 ##### In customScripts.lua:
-Add ````require("custom/bountyHunters")```` to the top with the other requires.
+Add ````require("custom/bountyHunters")````.
