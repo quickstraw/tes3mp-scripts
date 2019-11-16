@@ -7,3 +7,6 @@ Adds a command to display a sorted list of active players with a bounty.
 
 ## Criminals
 This is a modified version of Skvysh's Criminals script. I fixed some bugs so that it should work without failure.
+
+## Bounty Hunters
+Spawns bounty hunters on players with a decently high bounty. Bounty hunters' levels somewhat scale with the criminal player's level and bounty. Bounty hunters' gear do not scale.
