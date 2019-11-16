@@ -6,7 +6,7 @@ I fixed the script to run correctly and hopefully without bugs. The script has b
 
 ### Features
 
-##### Wanted meassages when players' bounties certain threshholds.
+##### Wanted messages when players' bounties certain threshholds.
 
 ##### Bounties can be collected from wanted players by killing them.
 
