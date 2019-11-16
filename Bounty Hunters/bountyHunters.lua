@@ -49,49 +49,54 @@ local Methods = {}
 
 -- Called when Bounty Hunters should spawn on a player with a bounty.
 TimedNPC = function(pid)
-	local outside = tes3mp.IsInExterior(pid)
-	
-	local bounty = tes3mp.GetBounty(pid)
-	local decentBounty = bounty >= 500
 
-	if Players[pid] ~= nil and outside and decentBounty then
+	if Players[pid] ~= nil then
 	
-		local seed = tonumber(tostring(os.time()):reverse():sub(1,6))
-		math.randomseed(seed)
-		math.random(); math.random(); math.random()
+		local outside = tes3mp.IsInExterior(pid)
 	
-		-- Spawn Bounty Hunters
-		local spawnedMulti = false
+		local bounty = tes3mp.GetBounty(pid)
+		local decentBounty = bounty >= 500
+
+		if outside and decentBounty then
+	
+			local seed = tonumber(tostring(os.time()):reverse():sub(1,6))
+			math.randomseed(seed)
+			math.random(); math.random(); math.random()
 		
-		local uniqueIndex = Methods.GenerateNPC(pid)
-		
-		local uniqueIndex2
-		
-		if bounty > 2000 then
-			local rand = math.random(1, 10)
-			if (bounty / 1000) > rand then
-				uniqueIndex2 = Methods.GenerateNPC(pid)
-				spawnedMulti = true
+			-- Spawn Bounty Hunters
+			local spawnedMulti = false
+			
+			local uniqueIndex = Methods.GenerateNPC(pid)
+			
+			local uniqueIndex2
+			
+			if bounty > 2000 then
+				local rand = math.random(1, 10)
+				if (bounty / 1000) > rand then
+					uniqueIndex2 = Methods.GenerateNPC(pid)
+					spawnedMulti = true
+				end
 			end
-		end
+			
+			-- Send the spawned bounty hunters message
+			if spawnedMulti then
+				tes3mp.MessageBox(pid, -1, "Some bounty hunters have come to collect the price on your head!")
+			else
+				tes3mp.MessageBox(pid, -1, "A bounty hunter has come to collect the price on your head!")
+			end
 		
-		-- Send the spawned bounty hunters message
-		if spawnedMulti then
-			tes3mp.MessageBox(pid, -1, "Some bounty hunters have come to collect the price on your head!")
-		else
-			tes3mp.MessageBox(pid, -1, "A bounty hunter has come to collect the price on your head!")
+			tes3mp.RestartTimer(BountyTimers[pid], math.random(TIMER_MIN, TIMER_MAX))
+		elseif not outside and decentBounty then
+			if BountyPause[pid] == nil then -- If a pause timer does not exist...
+				BountyPause[pid] = tes3mp.CreateTimerEx("RestartBountyTimer", 5000, "i", pid)
+				tes3mp.StartTimer(BountyPause[pid])
+			else
+				tes3mp.RestartTimer(BountyPause[pid], 5000)
+			end
+		elseif not decentBounty then
+			Methods.ClearTimers(pid)
 		end
-		
-		tes3mp.RestartTimer(BountyTimers[pid], math.random(TIMER_MIN, TIMER_MAX))
-	elseif not outside and decentBounty then
-		if BountyPause[pid] == nil then -- If a pause timer does not exist...
-			BountyPause[pid] = tes3mp.CreateTimerEx("RestartBountyTimer", 5000, "i", pid)
-			tes3mp.StartTimer(BountyPause[pid])
-		else
-			tes3mp.RestartTimer(BountyPause[pid], 5000)
-		end
-	elseif not decentBounty then
-		Methods.ClearTimers(pid)
+	
 	end
 end
 
